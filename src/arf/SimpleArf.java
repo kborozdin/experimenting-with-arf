@@ -18,15 +18,16 @@ public class SimpleArf implements IArf {
 			array[i] += value;
 	}
 	
-	private void shiftLeftBitSet(BitSet bs, int left, int right, int shift) {
-		// TODO : looks like Java BitSet does not have shift method
-		for (int i = left; i < right; i++)
-			bs.set(i - shift, bs.get(i));
+	private void shiftLeftBitSet(BitSet bs, int left, int size, int shift) {
+		BitSet temp = bs.get(shift, size);
+		temp.clear(0, left - shift);
+		bs.clear(left - shift, size);
+		bs.or(temp);
 	}
 	
-	private void shiftRightBitSet(BitSet bs, int left, int right, int shift) {
-		// TODO : looks like Java BitSet does not have shift method
-		for (int i = right - 1; i >= left; i--)
+	private void shiftRightBitSet(BitSet bs, int left, int size, int shift) {
+		// TODO : Java BitSet lacks of right shift heavily
+		for (int i = size - 1; i >= left; i--)
 			bs.set(i + shift, bs.get(i));
 	}
 	
