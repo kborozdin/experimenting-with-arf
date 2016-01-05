@@ -1,32 +1,43 @@
 package arf;
 
+import arf.IQueryMaker.Segment;
+
 public class Runner {
 	IArf arf;
 	IColdStore coldStore;
 	IQueryMaker queryMaker;
 	
-	public Runner(IArf arf, IColdStore coldStore, IQueryMaker queryMaker, int coldStoreSize) {
+	public enum ArfMode {
+		DISABLED, ENABLED, DEBUG
+	}
+	
+	public Runner(IArf arf, IColdStore coldStore, IQueryMaker queryMaker) {
 		this.arf = arf;
 		this.coldStore = coldStore;
 		this.queryMaker = queryMaker;
-		for (int i = 0; i < coldStoreSize; i++)
-			this.coldStore.addElement(queryMaker.generateElement());
 	}
 	
-	int runAndGetFalsePositivesCount(int iterations) {
-		int falsePositivesCount = 0;
+	public double runAndMeasureTimeInMilliseconds(int iterations, ArfMode arfMode) {
+		long startTime = System.nanoTime();
 		for (int i = 0; i < iterations; i++) {
 			Segment query = queryMaker.generateSegment();
-			if (!arf.hasAnythingProbably(query.left, query.right)) {
-				if (coldStore.hasAnything(query.left, query.right))
+			if (arfMode != ArfMode.DISABLED && !arf.hasAnythingProbably(query.left, query.right)) {
+				if (arfMode == ArfMode.DEBUG && coldStore.hasAnything(query.left, query.right))
 					throw new IllegalStateException("ARF false negative");
 				continue;
 			}
-			if (!coldStore.hasAnything(query.left, query.right)) {
+			if (!coldStore.hasAnything(query.left, query.right) && arfMode != ArfMode.DISABLED)
 				arf.learnFalsePositive(query.left, query.right);
-				falsePositivesCount++;
-			}
 		}
-		return falsePositivesCount;
+		long totalTime = System.nanoTime() - startTime;
+		return (double)totalTime / 1e6;
+	}
+	
+	public static double runWithDefaults(ArfMode arfMode, int arfSizeInBits, IColdStoreFiller coldStoreFiller,
+			int coldStoreSize, IQueryMaker queryMaker, int queriesCount) {
+		IArf arf = new SimpleArf(arfSizeInBits);
+		IColdStore coldStore = new SimpleColdStore();
+		coldStore.fillWith(coldStoreFiller, coldStoreSize);
+		return new Runner(arf, coldStore, queryMaker).runAndMeasureTimeInMilliseconds(queriesCount, arfMode);
 	}
 }

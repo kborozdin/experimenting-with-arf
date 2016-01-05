@@ -3,19 +3,27 @@ package arf;
 import java.util.Random;
 
 public class RandomQueryMaker implements IQueryMaker {
-	Random random;
+	private Random random;
+	private int elementLimit;
 	
-	RandomQueryMaker(Random random) {
+	public RandomQueryMaker(Random random) {
 		this.random = random;
+		this.elementLimit = -1;
 	}
 	
-	@Override
-	public int generateElement() {
-		return random.nextInt(100000);
+	public RandomQueryMaker(Random random, int elementLimit) {
+		this.random = random;
+		this.elementLimit = elementLimit;
 	}
 	
+	private int getElement() {
+		if (elementLimit == -1)
+			return random.nextInt();
+		return random.nextInt(elementLimit);
+	}
+
 	@Override
 	public Segment generateSegment() {
-		return new Segment(generateElement(), generateElement());
+		return new Segment(getElement(), getElement());
 	}
 }

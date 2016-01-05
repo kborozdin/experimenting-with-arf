@@ -2,5 +2,5 @@ package arf;
 
 public interface IColdStore {
 	boolean hasAnything(int left, int right);
-	void addElement(int element);
+	void fillWith(IColdStoreFiller coldStoreFiller, int count);
 }
