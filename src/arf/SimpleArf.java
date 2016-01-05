@@ -63,7 +63,12 @@ public class SimpleArf implements IArf {
 		}
 		
 		public int getMiddle() {
-			return (int)(((long)left + right) / 2);
+			long sum = (long)left + right;
+			if (sum >= 0)
+				sum /= 2;
+			else
+				sum = sum / 2 - 1;
+			return (int)sum;
 		}
 		
 		public boolean isLeftSon() {
