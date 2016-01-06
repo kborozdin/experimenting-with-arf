@@ -25,8 +25,8 @@ public class SimpleArf implements IArf {
 		bs.or(temp);
 	}
 	
+	// TODO : Java BitSet lacks of right shift heavily
 	private void shiftRightBitSet(BitSet bs, int left, int size, int shift) {
-		// TODO : Java BitSet lacks of right shift heavily
 		for (int i = size - 1; i >= left; i--)
 			bs.set(i + shift, bs.get(i));
 	}
@@ -114,11 +114,16 @@ public class SimpleArf implements IArf {
 			assertLeaf();
 			leaves.set(leavesShift + 1, value);
 		}
+		
+		private int getAdditionalVerticesShift() {
+			return verticesShift - verticesStart[depth];
+		}
 
-		private Node goForward(boolean toLeft) {
+		private Node goForward(boolean toLeft, int additionalVerticesShift) {
 			assertVertex();
 			
-			int additionalVerticesShift = vertices.get(verticesStart[depth], verticesShift).cardinality() * VERTEX_SIZE;
+			if (additionalVerticesShift == -1)
+				additionalVerticesShift = vertices.get(verticesStart[depth], verticesShift).cardinality() * VERTEX_SIZE;
 			int newVerticesShift = verticesStart[depth + 1] + additionalVerticesShift;
 			int additionalLeavesShift = (verticesShift - verticesStart[depth]) * VERTEX_SIZE - additionalVerticesShift;
 			int newLeavesShift = leavesStart[depth + 1] + additionalLeavesShift;
@@ -134,28 +139,32 @@ public class SimpleArf implements IArf {
 			return new Node(depth + 1, getMiddle() + 1, right, newVerticesShift, newLeavesShift, this);
 		}
 		
-		public Node goLeft() {
-			return goForward(true);
+		public Node goLeft(int additionalVerticesShift) {
+			return goForward(true, additionalVerticesShift);
 		}
 		
-		public Node goRight() {
-			return goForward(false);
+		public Node goRight(int additionalVerticesShift) {
+			return goForward(false, additionalVerticesShift);
 		}
 		
 		public Node goUp() {
 			return parent;
 		}
-
-		// TODO : it's possible to use information from parent
+		
+		// TODO : a better use of known shifts is possible
 		public Node navigateToLeaf(int element) {
 			Node node = this;
-			while (!(node.left <= element && element <= node.right))
+			int additionalVerticesShift = -1;
+			while (!(node.left <= element && element <= node.right)) {
+				additionalVerticesShift = node.getAdditionalVerticesShift();
 				node = node.goUp();
+			}
 			while (!node.isLeaf()) {
 				if (element <= node.getMiddle())
-					node = node.goLeft();
+					node = node.goLeft(additionalVerticesShift);
 				else
-					node = node.goRight();
+					node = node.goRight(additionalVerticesShift);
+				additionalVerticesShift = -1;
 			}
 			return node;
 		}
@@ -171,8 +180,8 @@ public class SimpleArf implements IArf {
 		
 		public Node goToSibling() {
 			if (isLeftSon())
-				return parent.goRight();
-			return parent.goLeft();
+				return parent.goRight(getAdditionalVerticesShift());
+			return parent.goLeft(getAdditionalVerticesShift());
 		}
 
 		public void split() {
@@ -194,7 +203,7 @@ public class SimpleArf implements IArf {
 			if (parent != null)
 				vertices.set(parent.verticesShift + (isLeftSon() ? 0 : 1));
 			
-			Node leftSon = goLeft();
+			Node leftSon = goLeft(-1);
 			addToArray(leavesStart, depth + 2, 2 * VERTEX_SIZE);
 			shiftRightBitSet(leaves, leftSon.leavesShift, leavesSize, 2 * VERTEX_SIZE);
 			leavesSize += 2 * VERTEX_SIZE;
