@@ -18,19 +18,6 @@ public class SimpleArf implements IArf {
 			array[i] += value;
 	}
 	
-	private void shiftLeftBitSet(BitSet bs, int left, int size, int shift) {
-		BitSet temp = bs.get(shift, size);
-		temp.clear(0, left - shift);
-		bs.clear(left - shift, size);
-		bs.or(temp);
-	}
-	
-	// TODO : Java BitSet lacks of right shift heavily
-	private void shiftRightBitSet(BitSet bs, int left, int size, int shift) {
-		for (int i = size - 1; i >= left; i--)
-			bs.set(i + shift, bs.get(i));
-	}
-	
 	private class Node {
 		private int depth;
 		private int left, right;
@@ -191,11 +178,11 @@ public class SimpleArf implements IArf {
 			
 			boolean occupiedBit = getOccupiedBit();
 			addToArray(leavesStart, depth + 1, -VERTEX_SIZE);
-			shiftLeftBitSet(leaves, leavesShift + VERTEX_SIZE, leavesSize, VERTEX_SIZE);
+			leaves = BitSetUtils.shiftLeft(leaves, leavesShift + VERTEX_SIZE, leavesSize, VERTEX_SIZE);
 			leavesSize -= VERTEX_SIZE;
 			
 			addToArray(verticesStart, depth + 1, VERTEX_SIZE);
-			shiftRightBitSet(vertices, verticesShift, verticesSize, VERTEX_SIZE);
+			vertices = BitSetUtils.shiftRight(vertices, verticesShift, verticesSize, VERTEX_SIZE);
 			verticesSize += VERTEX_SIZE;
 			vertices.clear(verticesShift);
 			vertices.clear(verticesShift + 1);
@@ -205,7 +192,7 @@ public class SimpleArf implements IArf {
 			
 			Node leftSon = goLeft(-1);
 			addToArray(leavesStart, depth + 2, 2 * VERTEX_SIZE);
-			shiftRightBitSet(leaves, leftSon.leavesShift, leavesSize, 2 * VERTEX_SIZE);
+			leaves = BitSetUtils.shiftRight(leaves, leftSon.leavesShift, leavesSize, 2 * VERTEX_SIZE);
 			leavesSize += 2 * VERTEX_SIZE;
 			leaves.set(leftSon.leavesShift, occupiedBit);
 			leaves.set(leftSon.leavesShift + 2, occupiedBit);
@@ -220,18 +207,18 @@ public class SimpleArf implements IArf {
 			
 			boolean occupiedBit = leaves.get(leftSon.leavesShift) || leaves.get(leftSon.leavesShift + 2);
 			addToArray(leavesStart, depth + 2, -2 * VERTEX_SIZE);
-			shiftLeftBitSet(leaves, leftSon.leavesShift + 2 * VERTEX_SIZE, leavesSize, 2 * VERTEX_SIZE);
+			leaves = BitSetUtils.shiftLeft(leaves, leftSon.leavesShift + 2 * VERTEX_SIZE, leavesSize, 2 * VERTEX_SIZE);
 			leavesSize -= 2 * VERTEX_SIZE;
 			
 			if (parent != null)
 				vertices.clear(parent.verticesShift + (isLeftSon() ? 0 : 1));
 			
 			addToArray(verticesStart, depth + 1, -VERTEX_SIZE);
-			shiftLeftBitSet(vertices, verticesShift + VERTEX_SIZE, verticesSize, VERTEX_SIZE);
+			vertices = BitSetUtils.shiftLeft(vertices, verticesShift + VERTEX_SIZE, verticesSize, VERTEX_SIZE);
 			verticesSize -= VERTEX_SIZE;
 			
 			addToArray(leavesStart, depth + 1, VERTEX_SIZE);
-			shiftRightBitSet(leaves, leavesShift, leavesSize, VERTEX_SIZE);
+			leaves = BitSetUtils.shiftRight(leaves, leavesShift, leavesSize, VERTEX_SIZE);
 			leavesSize += VERTEX_SIZE;
 			leaves.set(leavesShift, occupiedBit);
 			leaves.set(leavesShift + 1);
