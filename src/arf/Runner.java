@@ -36,7 +36,7 @@ public class Runner {
 	public static double runWithDefaults(ArfMode arfMode, int arfSizeInBits, IColdStoreFiller coldStoreFiller,
 			int coldStoreSize, IQueryMaker queryMaker, int queriesCount) {
 		IArf arf = new SimpleArf(arfSizeInBits);
-		IColdStore coldStore = new SimpleColdStore();
+		IColdStore coldStore = new SimpleColdStore(10);
 		coldStore.fillWith(coldStoreFiller, coldStoreSize);
 		return new Runner(arf, coldStore, queryMaker).runAndMeasureTimeInMilliseconds(queriesCount, arfMode);
 	}

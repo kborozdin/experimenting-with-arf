@@ -3,10 +3,12 @@ package arf;
 import java.util.Arrays;
 
 public class SimpleColdStore implements IColdStore {
-	int[] storage;
+	private int[] storage;
+	private double lagInMilliseconds;
 	
-	public SimpleColdStore() {
-		storage = new int[0];
+	public SimpleColdStore(double lagInMilliseconds) {
+		this.storage = new int[0];
+		this.lagInMilliseconds = lagInMilliseconds;
 	}
 	
 	@Override
@@ -16,7 +18,7 @@ public class SimpleColdStore implements IColdStore {
 		if (position < 0)
 			position = -position - 1;
 		boolean result = position < storage.length && storage[position] <= right;
-		while (System.nanoTime() - startTime < (long)1e7) {}
+		while (System.nanoTime() - startTime < lagInMilliseconds * 1e6) {}
 		return result; 
 	}
 	
