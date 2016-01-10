@@ -40,7 +40,7 @@ public class TestCorrectness {
 		}
 		
 		for (int i = 1; i < results.size(); i++)
-			assertTrue(results.get(i - 1) >= results.get(i));
+			assertTrue(results.get(i - 1) > results.get(i) || results.get(i) < 50);
 		assertTrue(results.get(results.size() - 1) < 50);
 	}
 }
