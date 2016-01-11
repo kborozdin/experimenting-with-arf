@@ -2,12 +2,12 @@ package arf;
 
 public interface IQueryMaker {
 	public class Segment {
-		public int left;
-		public int right;
+		public BitArray left;
+		public BitArray right;
 		
-		public Segment(int left, int right) {
-			if (left > right) {
-				int temp = left;
+		public Segment(BitArray left, BitArray right) {
+			if (left.compareTo(right) > 0) {
+				BitArray temp = left;
 				left = right;
 				right = temp;
 			}

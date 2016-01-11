@@ -4,22 +4,16 @@ import java.util.Random;
 
 public class RandomQueryMaker implements IQueryMaker {
 	private Random random;
-	private int elementLimit;
+	private int maximalLength;
 	
-	public RandomQueryMaker(Random random) {
+	public RandomQueryMaker(Random random, int maximalLength) {
 		this.random = random;
-		this.elementLimit = -1;
+		this.maximalLength = maximalLength;
 	}
 	
-	public RandomQueryMaker(Random random, int elementLimit) {
-		this.random = random;
-		this.elementLimit = elementLimit;
-	}
-	
-	private int getElement() {
-		if (elementLimit == -1)
-			return random.nextInt();
-		return random.nextInt(elementLimit);
+	private BitArray getElement() {
+		int length = random.nextInt(maximalLength + 1);
+		return BitArray.generateRandom(random, length);
 	}
 
 	@Override

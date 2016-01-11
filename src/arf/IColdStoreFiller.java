@@ -1,5 +1,5 @@
 package arf;
 
 public interface IColdStoreFiller {
-	int[] getElements(int count);
+	BitArray[] getElements(int count);
 }

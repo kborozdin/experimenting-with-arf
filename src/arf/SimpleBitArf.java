@@ -1,133 +1,96 @@
 package arf;
 
+import java.util.ArrayList;
 import java.util.BitSet;
 
-/*
- * This class is deprecated and has only a historical significance
- */
-
-public class SimpleArf {
-	private final int LEFT_BOUND = Integer.MIN_VALUE;
-	private final int RIGHT_BOUND = Integer.MAX_VALUE;
+public class SimpleBitArf implements IArf {
 	private final int VERTEX_SIZE = 2;
 	
 	private int sizeLimitInBits;
-	private int clockPointer;
+	private BitArray clockPointer;
 	private int verticesSize, leavesSize;
-	private int[] verticesStart, leavesStart;
+	private ArrayList<Integer> verticesStart, leavesStart;
 	private BitSet vertices, leaves;
 
-	private void addToArray(int[] array, int from, int value) {
-		for (int i = from; i < array.length; i++)
-			array[i] += value;
+	// TODO : merge unused suffix ?
+	private void addToArray(ArrayList<Integer> array, int from, int value) {
+		while (from >= array.size())
+			array.add(array.get(array.size() - 1));
+		for (int i = from; i < array.size(); i++)
+			array.set(i, array.get(i) + value);
 	}
 	
 	private class Node {
 		private int depth;
-		private int left, right;
 		private int verticesShift, leavesShift;
+		private boolean lastBit;
 		private Node parent;
 		
-		public Node() {
-			depth = 0;
-			left = LEFT_BOUND;
-			right = RIGHT_BOUND;
-			verticesShift = leavesShift = 0;
-			parent = null;
-		}
+		public Node() {}
 		
-		public Node(int depth, int left, int right, int verticesShift, int leavesShift, Node parent) {
+		public Node(int depth, int verticesShift, int leavesShift, boolean lastBit, Node parent) {
 			this.depth = depth;
-			this.left = left;
-			this.right = right;
 			this.verticesShift = verticesShift;
 			this.leavesShift = leavesShift;
+			this.lastBit = lastBit;
 			this.parent = parent;
 		}
-
-		public int getLeft() {
-			return left;
-		}
 		
-		public int getRight() {
-			return right;
-		}
-		
-		public int getMiddle() {
-			long sum = (long)left + right;
-			if (sum >= 0)
-				sum /= 2;
-			else
-				sum = sum / 2 - 1;
-			return (int)sum;
+		public boolean getLastBit() {
+			return lastBit;
 		}
 		
 		public boolean isLeftSon() {
-			return left == parent.left;
+			return !lastBit;
 		}
 		
+		//TODO left/right son getter/setter ?
 		public boolean isLeaf() {
 			if (depth == 0)
 				return verticesSize == 0;
 			return !vertices.get(parent.verticesShift + (isLeftSon() ? 0 : 1));
 		}
 		
-		public boolean isLastLeaf() {
-			return isLeaf() && right == RIGHT_BOUND;
-		}
-		
-		private void assertLeaf() {
-			if (!isLeaf())
-				throw new IllegalArgumentException("Node must be a leaf");
-		}
-		
-		private void assertVertex() {
-			if (isLeaf())
-				throw new IllegalArgumentException("Node must be a vertex");
-		}
-		
 		public boolean getOccupiedBit() {
-			assertLeaf();
 			return leaves.get(leavesShift);
 		}
 		
 		public void setOccupiedBit(boolean value) {
-			assertLeaf();
 			leaves.set(leavesShift, value);
 		}
 		
 		public boolean getUsedBit() {
-			assertLeaf();
 			return leaves.get(leavesShift + 1);
 		}
 
 		public void setUsedBit(boolean value) {
-			assertLeaf();
 			leaves.set(leavesShift + 1, value);
 		}
 		
 		private int getAdditionalVerticesShift() {
-			return verticesShift - verticesStart[depth];
+			return verticesShift - verticesStart.get(depth);
+		}
+		
+		private int getDepth() {
+			return depth;
 		}
 
 		private Node goForward(boolean toLeft, int additionalVerticesShift) {
-			assertVertex();
-			
 			if (additionalVerticesShift == -1)
-				additionalVerticesShift = vertices.get(verticesStart[depth], verticesShift).cardinality() * VERTEX_SIZE;
-			int newVerticesShift = verticesStart[depth + 1] + additionalVerticesShift;
-			int additionalLeavesShift = (verticesShift - verticesStart[depth]) * VERTEX_SIZE - additionalVerticesShift;
-			int newLeavesShift = leavesStart[depth + 1] + additionalLeavesShift;
+				additionalVerticesShift = vertices.get(verticesStart.get(depth), verticesShift).cardinality() * VERTEX_SIZE;
+			int newVerticesShift = verticesStart.get(depth + 1) + additionalVerticesShift;
+			int additionalLeavesShift = (verticesShift - verticesStart.get(depth)) * VERTEX_SIZE - additionalVerticesShift;
+			int newLeavesShift = leavesStart.get(depth + 1) + additionalLeavesShift;
 			
 			if (toLeft)
-				return new Node(depth + 1, left, getMiddle(), newVerticesShift, newLeavesShift, this);
+				return new Node(depth + 1, newVerticesShift, newLeavesShift, false, this);
 			
 			if (vertices.get(verticesShift))
 				newVerticesShift += VERTEX_SIZE;
 			else
 				newLeavesShift += VERTEX_SIZE;
 			
-			return new Node(depth + 1, getMiddle() + 1, right, newVerticesShift, newLeavesShift, this);
+			return new Node(depth + 1, newVerticesShift, newLeavesShift, true, this);
 		}
 		
 		public Node goLeft(int additionalVerticesShift) {
@@ -142,31 +105,59 @@ public class SimpleArf {
 			return parent;
 		}
 		
-		// TODO : a better use of known shifts is possible
-		public Node navigateToLeaf(int element) {
+		public BitArray getPath() {
+			BitArray path = new BitArray(depth);
 			Node node = this;
+			for (int i = depth - 1; i >= 0; i--) {
+				path.set(i, node.getLastBit());
+				node = node.goUp();
+			}
+			return path;
+		}
+		
+		// TODO : a better use of known shifts is possible
+		// TODO : think
+		public Node navigateToLeaf(BitArray element) {
+			Node node = this;
+			int commonPrefix = getPath().getLongestCommonPrefixWith(element);
 			int additionalVerticesShift = -1;
-			while (!(node.left <= element && element <= node.right)) {
+			for (int i = 0; i < depth - commonPrefix; i++) {
 				additionalVerticesShift = node.getAdditionalVerticesShift();
 				node = node.goUp();
 			}
-			while (!node.isLeaf()) {
-				if (element <= node.getMiddle())
+			for (int i = commonPrefix; i < element.getSize() && !node.isLeaf(); i++) {
+				if (!element.get(i))
 					node = node.goLeft(additionalVerticesShift);
 				else
 					node = node.goRight(additionalVerticesShift);
 				additionalVerticesShift = -1;
 			}
+			while (!node.isLeaf()) {
+				node = node.goLeft(additionalVerticesShift);
+				additionalVerticesShift = -1;
+			}
 			return node;
 		}
 		
+		// TODO : think
 		public Node goToNextLeaf() {
+			BitArray path = getPath();
 			if (isLeaf()) {
-				if (right == RIGHT_BOUND)
-					throw new IllegalArgumentException("Node must not be a last leaf");
-				return navigateToLeaf(right + 1);
+				while (path.getSize() > 0 && path.get(path.getSize() - 1))
+					path.popBack();
+				if (path.getSize() == 0)
+					return null;
+				path.flip(path.getSize() - 1);
+				return navigateToLeaf(path);
 			}
-			return navigateToLeaf(left);
+			return navigateToLeaf(path);
+		}
+		
+		public Node goToNextCyclicallyLeaf() {
+			Node node = goToNextLeaf();
+			if (node == null)
+				node = new Node().goToNextLeaf();
+			return node;
 		}
 		
 		public Node goToSibling() {
@@ -175,11 +166,8 @@ public class SimpleArf {
 			return parent.goLeft(getAdditionalVerticesShift());
 		}
 
+		// TODO : refactor ?
 		public void split() {
-			assertLeaf();
-			if (left == right)
-				throw new IllegalArgumentException("Node must have bigger than one-element range");
-			
 			boolean occupiedBit = getOccupiedBit();
 			addToArray(leavesStart, depth + 1, -VERTEX_SIZE);
 			leaves = BitSetUtils.shiftLeft(leaves, leavesShift + VERTEX_SIZE, leavesSize, VERTEX_SIZE);
@@ -205,10 +193,6 @@ public class SimpleArf {
 		}
 		
 		public void mergeSons(Node leftSon) {
-			assertVertex();
-			if (vertices.get(verticesShift) || vertices.get(verticesShift + 1))
-				throw new IllegalArgumentException("Both sons must be leaves");
-			
 			boolean occupiedBit = leaves.get(leftSon.leavesShift) || leaves.get(leftSon.leavesShift + 2);
 			addToArray(leavesStart, depth + 2, -2 * VERTEX_SIZE);
 			leaves = BitSetUtils.shiftLeft(leaves, leftSon.leavesShift + 2 * VERTEX_SIZE, leavesSize, 2 * VERTEX_SIZE);
@@ -229,55 +213,60 @@ public class SimpleArf {
 		}
 	}
 	
-	public SimpleArf(int sizeLimitInBits) {
+	public SimpleBitArf(int sizeLimitInBits) {
 		if (sizeLimitInBits < VERTEX_SIZE)
 			throw new IllegalArgumentException("Size limit must be at least " + VERTEX_SIZE);
 		this.sizeLimitInBits = sizeLimitInBits;
 		
 		verticesSize = 0;
 		leavesSize = VERTEX_SIZE;
-		clockPointer = LEFT_BOUND;
-		verticesStart = new int[Integer.SIZE + 1];
-		leavesStart = new int[Integer.SIZE + 1];
-		for (int i = 1; i < leavesStart.length; i++)
-			leavesStart[i] = VERTEX_SIZE;
+		clockPointer = new BitArray();
+		verticesStart = new ArrayList<>();
+		verticesStart.add(0);
+		leavesStart = new ArrayList<>();
+		leavesStart.add(0);
+		leavesStart.add(VERTEX_SIZE);
 		vertices = new BitSet();
 		leaves = new BitSet();
 		leaves.set(0);
 		leaves.set(1);
 	}
-	
-	public boolean hasAnythingProbably(int left, int right) {
+
+	@Override
+	public boolean hasAnythingProbably(BitArray left, BitArray right) {
+		if (left.compareTo(right) > 0)
+			throw new IllegalArgumentException("The left <= right inequality must hold true");
 		Node node = new Node().navigateToLeaf(left);
-		while (true) {
+		do {
 			node.setUsedBit(true);
 			if (node.getOccupiedBit())
 				return true;
-			if (right <= node.getRight())
-				break;
 			node = node.goToNextLeaf();
 		}
+		while (node != null && node.getPath().compareTo(right) <= 0);
 		return false;
 	}
 	
-	private void markEmpty(int left, int right) {
+	private void markEmpty(BitArray left, BitArray right) {
 		Node node = new Node().navigateToLeaf(left);
-		while (true) {
+		do {
 			node.setOccupiedBit(false);
-			if (right <= node.getRight())
-				break;
 			node = node.goToNextLeaf();
 		}
+		while (node != null && node.getPath().compareTo(right) <= 0);
 	}
 
-	public void learnFalsePositive(int left, int right) {
+	@Override
+	public void learnFalsePositive(BitArray left, BitArray right) {
+		if (left.compareTo(right) > 0)
+			throw new IllegalArgumentException("The left <= right inequality must hold true");
 		Node node = new Node().navigateToLeaf(left);
-		while (node.getLeft() != left && node.getOccupiedBit()) {
+		while (node.getDepth() < left.getSize() && node.getOccupiedBit()) {
 			node.split();
 			node = node.navigateToLeaf(left);
 		}
 		node = new Node().navigateToLeaf(right);
-		while (node.getRight() != right && node.getOccupiedBit()) {
+		while (node.getDepth() < right.getSize() && node.getOccupiedBit()) {
 			node.split();
 			node = node.navigateToLeaf(right);
 		}
@@ -286,30 +275,22 @@ public class SimpleArf {
 			shrink();
 	}
 	
-	private int addOneCyclic(int value) {
-		return value == RIGHT_BOUND ? LEFT_BOUND : value + 1;
-	}
-	
+	// TODO : think
 	private void shrink() {
 		Node node = new Node().navigateToLeaf(clockPointer);
-		clockPointer = addOneCyclic(node.getRight());
+		clockPointer = node.goToNextCyclicallyLeaf().getPath(); // TODO : such slow
 		while (node.getUsedBit()) {
 			node.setUsedBit(false);
-			if (node.isLastLeaf())
-				node = new Node().navigateToLeaf(LEFT_BOUND);
-			else
-				node = node.goToNextLeaf();
-			clockPointer = addOneCyclic(node.getRight());
+			node = node.goToNextCyclicallyLeaf();
+			clockPointer = node.goToNextCyclicallyLeaf().getPath();
 		}
-		
-		if (node.isLastLeaf())
-			return;
+
 		Node sibling = node.goToSibling();
 		if (!sibling.isLeaf())
 			return;
 		
 		if (sibling.getOccupiedBit() == node.getOccupiedBit())
-			clockPointer = node.getLeft();
+			clockPointer = node.getPath();
 		node.parent.mergeSons(node.isLeftSon() ? node : sibling);
 	}
 

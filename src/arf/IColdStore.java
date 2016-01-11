@@ -1,6 +1,6 @@
 package arf;
 
 public interface IColdStore {
-	boolean hasAnything(int left, int right);
-	void fillWith(IColdStoreFiller coldStoreFiller, int count);
+	boolean hasAnything(BitArray left, BitArray right);
+	void fillWith(BitArray[] elements);
 }
