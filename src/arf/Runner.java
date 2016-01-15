@@ -20,7 +20,6 @@ public class Runner {
 	public double runAndMeasureTimeInMilliseconds(int iterations, ArfMode arfMode) {
 		long startTime = System.nanoTime();
 		for (int i = 0; i < iterations; i++) {
-			System.out.println(i); // TODO
 			Segment query = queryMaker.generateSegment();
 			if (arfMode != ArfMode.DISABLED && !arf.hasAnythingProbably(query.left, query.right)) {
 				if (arfMode == ArfMode.DEBUG && coldStore.hasAnything(query.left, query.right))

@@ -17,7 +17,7 @@ public class TestCorrectness {
 		for (int arfSize = 10; arfSize <= (int)1e6; arfSize *= 10) {
 			Random random = new Random(31415);
 			IQueryMaker queryMaker = new RandomQueryMaker(random, 30);
-			IColdStoreFiller coldStoreFiller = new RandomColdStoreFiller(random, 20);
+			IColdStoreFiller coldStoreFiller = new RandomColdStoreFiller(random, 20, 0);
 			IColdStore coldStore = new SimpleColdStore(0);
 			coldStore.fillWith(coldStoreFiller.getElements((int)1e6));
 			

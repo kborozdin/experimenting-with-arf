@@ -25,15 +25,17 @@ public class SimpleBitArf implements IArf {
 		private int verticesShift, leavesShift;
 		private boolean lastBit;
 		private Node parent;
+		private int pathHash;
 		
 		public Node() {}
 		
-		public Node(int depth, int verticesShift, int leavesShift, boolean lastBit, Node parent) {
+		public Node(int depth, int verticesShift, int leavesShift, boolean lastBit, Node parent, int pathHash) {
 			this.depth = depth;
 			this.verticesShift = verticesShift;
 			this.leavesShift = leavesShift;
 			this.lastBit = lastBit;
 			this.parent = parent;
+			this.pathHash = pathHash;
 		}
 		
 		public boolean getLastBit() {
@@ -74,7 +76,17 @@ public class SimpleBitArf implements IArf {
 		private int getDepth() {
 			return depth;
 		}
+		
+		private int getPathHash() {
+			return pathHash;
+		}
+		
+		private int recalcHash(int hash, int character) {
+			character++;
+			return (hash * 17239 + character) % ((int)1e9 + 7);
+		}
 
+		// TODO
 		private Node goForward(boolean toLeft, int additionalVerticesShift) {
 			if (additionalVerticesShift == -1)
 				additionalVerticesShift = vertices.get(verticesStart.get(depth), verticesShift).cardinality() * VERTEX_SIZE;
@@ -83,14 +95,14 @@ public class SimpleBitArf implements IArf {
 			int newLeavesShift = leavesStart.get(depth + 1) + additionalLeavesShift;
 			
 			if (toLeft)
-				return new Node(depth + 1, newVerticesShift, newLeavesShift, false, this);
+				return new Node(depth + 1, newVerticesShift, newLeavesShift, false, this, recalcHash(pathHash, 0));
 			
 			if (vertices.get(verticesShift))
 				newVerticesShift += VERTEX_SIZE;
 			else
 				newLeavesShift += VERTEX_SIZE;
 			
-			return new Node(depth + 1, newVerticesShift, newLeavesShift, true, this);
+			return new Node(depth + 1, newVerticesShift, newLeavesShift, true, this, recalcHash(pathHash, 1));
 		}
 		
 		public Node goLeft(int additionalVerticesShift) {
@@ -115,42 +127,20 @@ public class SimpleBitArf implements IArf {
 			return path;
 		}
 		
-		// TODO : a better use of known shifts is possible
-		// TODO : think
-		public Node navigateToLeaf(BitArray element) {
-			Node node = this;
-			int commonPrefix = getPath().getLongestCommonPrefixWith(element);
-			int additionalVerticesShift = -1;
-			for (int i = 0; i < depth - commonPrefix; i++) {
-				additionalVerticesShift = node.getAdditionalVerticesShift();
-				node = node.goUp();
-			}
-			for (int i = commonPrefix; i < element.getSize() && !node.isLeaf(); i++) {
-				if (!element.get(i))
-					node = node.goLeft(additionalVerticesShift);
-				else
-					node = node.goRight(additionalVerticesShift);
-				additionalVerticesShift = -1;
-			}
-			while (!node.isLeaf()) {
-				node = node.goLeft(additionalVerticesShift);
-				additionalVerticesShift = -1;
-			}
-			return node;
-		}
-		
-		// TODO : think
 		public Node goToNextLeaf() {
-			BitArray path = getPath();
+			Node node = this;
+			
 			if (isLeaf()) {
-				while (path.getSize() > 0 && path.get(path.getSize() - 1))
-					path.popBack();
-				if (path.getSize() == 0)
+				while (node.depth > 0 && !node.isLeftSon())
+					node = node.goUp();
+				if (node.depth == 0)
 					return null;
-				path.flip(path.getSize() - 1);
-				return navigateToLeaf(path);
+				node = node.goToSibling();
 			}
-			return navigateToLeaf(path);
+			
+			while (!node.isLeaf())
+				node = node.goLeft(-1);
+			return node;
 		}
 		
 		public Node goToNextCyclicallyLeaf() {
@@ -211,6 +201,20 @@ public class SimpleBitArf implements IArf {
 			leaves.set(leavesShift, occupiedBit);
 			leaves.set(leavesShift + 1);
 		}
+		
+		public boolean equals(Node other) {
+			return depth == other.depth && pathHash == other.getPathHash() &&
+					getPath().equals(other.getPath());
+		}
+	}
+	
+	public Node navigateToLeaf(BitArray path, boolean toFirstLeaf) {
+		Node node = new Node();
+		for (int i = 0; i < path.getSize() && !node.isLeaf(); i++)
+			node = node.goForward(!path.get(i), -1);
+		while (!node.isLeaf())
+			node = node.goForward(toFirstLeaf, -1);
+		return node;
 	}
 	
 	public SimpleBitArf(int sizeLimitInBits) {
@@ -236,65 +240,70 @@ public class SimpleBitArf implements IArf {
 	public boolean hasAnythingProbably(BitArray left, BitArray right) {
 		if (left.compareTo(right) > 0)
 			throw new IllegalArgumentException("The left <= right inequality must hold true");
-		Node node = new Node().navigateToLeaf(left);
-		do {
+		Node node = navigateToLeaf(left, true);
+		Node lastNode = navigateToLeaf(right, false);
+		while (true) {
 			node.setUsedBit(true);
 			if (node.getOccupiedBit())
 				return true;
+			if (node.equals(lastNode))
+				break;
 			node = node.goToNextLeaf();
 		}
-		while (node != null && node.getPath().compareTo(right) <= 0);
 		return false;
 	}
 	
 	private void markEmpty(BitArray left, BitArray right) {
-		Node node = new Node().navigateToLeaf(left);
-		do {
+		Node node = navigateToLeaf(left, true);
+		Node lastNode = navigateToLeaf(right, false);
+		while (true) {
 			node.setOccupiedBit(false);
+			if (node.equals(lastNode))
+				break;
 			node = node.goToNextLeaf();
 		}
-		while (node != null && node.getPath().compareTo(right) <= 0);
 	}
 
 	@Override
 	public void learnFalsePositive(BitArray left, BitArray right) {
 		if (left.compareTo(right) > 0)
 			throw new IllegalArgumentException("The left <= right inequality must hold true");
-		Node node = new Node().navigateToLeaf(left);
+		Node node = navigateToLeaf(left, true);
 		while (node.getDepth() < left.getSize() && node.getOccupiedBit()) {
 			node.split();
-			node = node.navigateToLeaf(left);
+			node = node.goForward(!left.get(node.getDepth()), -1);
 		}
-		node = new Node().navigateToLeaf(right);
+		node = navigateToLeaf(right, true);
 		while (node.getDepth() < right.getSize() && node.getOccupiedBit()) {
 			node.split();
-			node = node.navigateToLeaf(right);
+			node = node.goForward(!right.get(node.getDepth()), -1);
 		}
 		markEmpty(left, right);
-		while (getSizeInBits() > sizeLimitInBits)
-			shrink();
+		shrink();
 	}
 
 	private void shrink() {
-		Node node = new Node().navigateToLeaf(clockPointer);
+		Node node = navigateToLeaf(clockPointer, true);
 		
-		while (true) {
+		while (getSizeInBits() > sizeLimitInBits) {
 			if (node.getUsedBit()) {
 				node.setUsedBit(false);
 				node = node.goToNextCyclicallyLeaf();
 				continue;
 			}
-			
+
 			Node sibling = node.goToSibling();
 			if (!sibling.isLeaf()) {
 				node = node.goToNextCyclicallyLeaf();
 				continue;
 			}
-			
+
 			boolean canCascade = sibling.getOccupiedBit() == node.getOccupiedBit();
-			node.parent.mergeSons(node.isLeftSon() ? node : sibling);
+			Node parent = node.goUp();
+			parent.mergeSons(node.isLeftSon() ? node : sibling);
+			node = parent;
 			if (!canCascade)
-				node = node.parent.goToNextCyclicallyLeaf();
+				node = node.goToNextCyclicallyLeaf();
 			break;
 		}
 		

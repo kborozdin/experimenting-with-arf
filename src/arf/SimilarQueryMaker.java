@@ -25,7 +25,7 @@ public class SimilarQueryMaker implements IQueryMaker {
 				left.pushBack(random.nextBoolean());
 			
 			BitArray right = (BitArray)prefix.clone();
-			right.pushBack(false);
+			right.pushBack(true);
 			for (int j = commonPrefixLength + 1; j < stablePrefixLength; j++)
 				right.pushBack(random.nextBoolean());
 			
@@ -35,7 +35,8 @@ public class SimilarQueryMaker implements IQueryMaker {
 	
 	@Override
 	public Segment generateSegment() {
-		Segment segment = baseSegments[pointer];
+		// TODO : clone...
+		Segment segment = new Segment(baseSegments[pointer].left, baseSegments[pointer].right);
 		pointer++;
 		if (pointer == baseSegments.length)
 			pointer = 0;
