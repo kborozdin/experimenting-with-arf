@@ -15,7 +15,11 @@ public class Main {
 		
 		//testBothRandom();
 		//testRandomAndDensePrefix();
-		testRandomAndSimilar();
+		//testRandomAndSimilar();
+		
+		Random random = new Random(12347);
+		double elapsedTime = Runner.runWithDefaults(ArfMode.ENABLED, 100,
+				new RandomColdStoreFiller(random, 800), 10, new SimilarQueryMaker(random, 100, 600, 780, 800), 10);
 	}
 
 	public static void testBothRandom() {

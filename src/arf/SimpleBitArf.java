@@ -274,24 +274,31 @@ public class SimpleBitArf implements IArf {
 		while (getSizeInBits() > sizeLimitInBits)
 			shrink();
 	}
-	
-	// TODO : think
+
 	private void shrink() {
 		Node node = new Node().navigateToLeaf(clockPointer);
-		clockPointer = node.goToNextCyclicallyLeaf().getPath(); // TODO : such slow
-		while (node.getUsedBit()) {
-			node.setUsedBit(false);
-			node = node.goToNextCyclicallyLeaf();
-			clockPointer = node.goToNextCyclicallyLeaf().getPath();
-		}
-
-		Node sibling = node.goToSibling();
-		if (!sibling.isLeaf())
-			return;
 		
-		if (sibling.getOccupiedBit() == node.getOccupiedBit())
-			clockPointer = node.getPath();
-		node.parent.mergeSons(node.isLeftSon() ? node : sibling);
+		while (true) {
+			if (node.getUsedBit()) {
+				node.setUsedBit(false);
+				node = node.goToNextCyclicallyLeaf();
+				continue;
+			}
+			
+			Node sibling = node.goToSibling();
+			if (!sibling.isLeaf()) {
+				node = node.goToNextCyclicallyLeaf();
+				continue;
+			}
+			
+			boolean canCascade = sibling.getOccupiedBit() == node.getOccupiedBit();
+			node.parent.mergeSons(node.isLeftSon() ? node : sibling);
+			if (!canCascade)
+				node = node.parent.goToNextCyclicallyLeaf();
+			break;
+		}
+		
+		clockPointer = node.getPath();
 	}
 
 	private int getSizeInBits() {
