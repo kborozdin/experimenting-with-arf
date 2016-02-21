@@ -2,7 +2,7 @@ package arf;
 
 import java.util.ArrayList;
 
-public class SimpleBitArf implements IArf {
+public class SimpleBitArf implements IArf, Cloneable {
 	private final int VERTEX_SIZE = 2;
 	
 	private int sizeLimitInBits;
@@ -206,6 +206,8 @@ public class SimpleBitArf implements IArf {
 		return node;
 	}
 	
+	public SimpleBitArf() {}
+	
 	public SimpleBitArf(int sizeLimitInBits) {
 		if (sizeLimitInBits < VERTEX_SIZE)
 			throw new IllegalArgumentException("Size limit must be at least " + VERTEX_SIZE);
@@ -300,5 +302,17 @@ public class SimpleBitArf implements IArf {
 	// TODO : actual BitSets size is greater
 	private int getSizeInBits() {
 		return vertices.getSize() + leaves.getSize();
+	}
+
+	@Override
+	public Object clone() {
+		SimpleBitArf result = new SimpleBitArf();
+		result.sizeLimitInBits = sizeLimitInBits;
+		result.clockPointer = (BitArray)clockPointer.clone();
+		result.verticesStart = new ArrayList<>(verticesStart);
+		result.leavesStart = new ArrayList<>(leavesStart);
+		result.vertices = (BitArray)vertices.clone();
+		result.leaves = (BitArray)leaves.clone();
+		return result;
 	}
 }

@@ -103,7 +103,7 @@ public class BitArray implements Comparable<BitArray>, Cloneable {
 	}
 	
 	@Override
-	protected Object clone() {
+	public Object clone() {
 		return new BitArray((BitSet)bitSet.clone(), size);
 	}
 	

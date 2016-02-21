@@ -1,7 +1,5 @@
 package arf;
 
-import arf.IQueryMaker.Segment;
-
 public class Runner {
 	IArf arf;
 	IColdStore coldStore;

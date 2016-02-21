@@ -7,8 +7,6 @@ import java.util.Random;
 
 import org.junit.Test;
 
-import arf.IQueryMaker.Segment;
-
 public class TestCorrectness {
 	@Test
 	public void testStress() {

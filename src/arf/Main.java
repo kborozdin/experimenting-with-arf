@@ -6,9 +6,34 @@ import arf.Runner.ArfMode;
 
 public class Main {
 	public static void main(String[] args) {
-		testBothRandom();
-		testRandomAndDensePrefix();
-		testRandomAndSimilar();
+		new Main().testConcurrency();
+		//testBothRandom();
+		//testRandomAndDensePrefix();
+		//testRandomAndSimilar();
+	}
+	
+	private class WorkerForConcurrency implements Runnable {
+		private Runner runner;
+		
+		public WorkerForConcurrency(Runner runner) {
+			this.runner = runner;
+		}
+		
+		@Override
+		public void run() {
+			double elapsedTime = runner.runAndMeasureTimeInMilliseconds((int)1e3, ArfMode.ENABLED);
+			System.out.println("Finished thread: " + elapsedTime + " ms");
+		}
+	}
+	
+	public void testConcurrency() {
+		Random random = new Random(777);
+		IArf arf = new ConcurrentBitArf((int)1e5, 100);
+		IColdStore coldStore = new SimpleColdStore(10);
+		coldStore.fillWith(new RandomColdStoreFiller(random, 800, 100).getElements((int)1e6));
+
+		for (int i = 0; i < 3; i++)
+			new Thread(new WorkerForConcurrency(new Runner(arf, coldStore, new RandomQueryMaker(random, 800)))).start();
 	}
 
 	public static void testBothRandom() {
