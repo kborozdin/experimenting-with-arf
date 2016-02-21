@@ -53,11 +53,26 @@ public class BitArray implements Comparable<BitArray>, Cloneable {
 	
 	// TODO : optimize
 	public int getLongestCommonPrefixWith(BitArray other) {
-		int maximalPrefix = Math.min(size, other.getSize());
-		for (int i = 0; i < maximalPrefix; i++)
+		int length = Math.min(size, other.getSize());
+		for (int i = 0; i < length; i++)
 			if (get(i) != other.get(i))
 				return i;
-		return maximalPrefix;
+		return length;
+	}
+
+	public void shiftSuffixLeft(int from, int shiftSize) {
+		bitSet = BitSetUtils.shiftLeft(bitSet, from, size, shiftSize);
+		size -= shiftSize;
+	}
+
+	public void shiftSuffixRight(int from, int shiftSize) {
+		bitSet = BitSetUtils.shiftRight(bitSet, from, size, shiftSize);
+		size += shiftSize;
+	}
+	
+	// TODO
+	public int countOnes(int left, int rightEx) {
+		return bitSet.get(left, rightEx).cardinality();
 	}
 
 	// TODO : optimize
