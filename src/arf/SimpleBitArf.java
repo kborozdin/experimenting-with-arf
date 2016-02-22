@@ -205,9 +205,9 @@ public class SimpleBitArf implements IArf, Cloneable {
 			node = node.goForward(toFirstLeaf, -1);
 		return node;
 	}
-	
+
 	public SimpleBitArf() {}
-	
+
 	public SimpleBitArf(int sizeLimitInBits) {
 		if (sizeLimitInBits < VERTEX_SIZE)
 			throw new IllegalArgumentException("Size limit must be at least " + VERTEX_SIZE);

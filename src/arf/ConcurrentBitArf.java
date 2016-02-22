@@ -7,8 +7,7 @@ public class ConcurrentBitArf implements IArf {
 	private int queriesCountToRebuildAfter;
 	private int processedQueriesCount;
 	private BlockingQueue<Segment> queue;
-	private volatile SimpleBitArf stableArf;
-	private SimpleBitArf workingArf;
+	private SimpleBitArf stableArf, workingArf;
 	
 	private class Worker implements Runnable {
 		@Override
