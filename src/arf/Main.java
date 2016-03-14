@@ -21,19 +21,29 @@ public class Main {
 		
 		@Override
 		public void run() {
-			double elapsedTime = runner.runAndMeasureTimeInMilliseconds((int)1e3, ArfMode.ENABLED);
-			System.out.println("Finished thread: " + elapsedTime + " ms");
+			runner.runAndMeasureTimeInMilliseconds((int)1e3, ArfMode.ENABLED);
 		}
 	}
 	
 	public void testConcurrency() {
 		Random random = new Random(777);
-		IArf arf = new ConcurrentBitArf((int)1e5, 100);
+		IArf arf = new ConcurrentBitArf(new SimpleBitArf((int)1e5), 50);
 		IColdStore coldStore = new SimpleColdStore(10);
-		coldStore.fillWith(new RandomColdStoreFiller(random, 800, 100).getElements((int)1e6));
+		coldStore.fillWith(new RandomColdStoreFiller(random, 800, 200).getElements((int)1e6));
 
-		for (int i = 0; i < 3; i++)
-			new Thread(new WorkerForConcurrency(new Runner(arf, coldStore, new RandomQueryMaker(random, 800)))).start();
+		long startTime = System.nanoTime();
+		Thread[] threads = new Thread[5];
+		for (int i = 0; i < threads.length; i++) {
+			threads[i] = new Thread(new WorkerForConcurrency(new Runner(arf, coldStore, new RandomQueryMaker(random, 800))));
+			threads[i].start();
+		}
+		for (int i = 0; i < threads.length; i++) {
+			try {
+				threads[i].join();
+			} catch (InterruptedException e) {}
+		}
+		double totalTime = (System.nanoTime() - startTime) / 1e6;
+		System.out.println("Finished all: " + totalTime + " ms");
 	}
 
 	public static void testBothRandom() {

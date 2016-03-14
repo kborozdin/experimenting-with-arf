@@ -206,7 +206,7 @@ public class SimpleBitArf implements IArf, Cloneable {
 		return node;
 	}
 
-	public SimpleBitArf() {}
+	private SimpleBitArf() {}
 
 	public SimpleBitArf(int sizeLimitInBits) {
 		if (sizeLimitInBits < VERTEX_SIZE)

@@ -9,11 +9,11 @@ import org.junit.Test;
 
 public class TestCorrectness {
 	@Test
-	public void testStress() {
+	public void testSimple() {
 		ArrayList<Integer> results = new ArrayList<>();
+		Random random = new Random(31415);
 		
 		for (int arfSize = 10; arfSize <= (int)1e6; arfSize *= 10) {
-			Random random = new Random(31415);
 			IQueryMaker queryMaker = new RandomQueryMaker(random, 30);
 			IColdStoreFiller coldStoreFiller = new RandomColdStoreFiller(random, 20, 0);
 			IColdStore coldStore = new SimpleColdStore(0);
@@ -43,7 +43,7 @@ public class TestCorrectness {
 	}
 	
 	@Test
-	public void testStrings() {
+	public void testCustom() {
 		IArf arf = new SimpleBitArf(1000);
 		IColdStore coldStore = new SimpleColdStore(0);
 		BitArray[] content = {
