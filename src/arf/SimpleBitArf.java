@@ -169,8 +169,8 @@ public class SimpleBitArf implements IArf, Cloneable {
 			leaves.shiftSuffixRight(leftSon.leavesShift, 4);
 			leaves.set(leftSon.leavesShift, occupiedBit);
 			leaves.set(leftSon.leavesShift + 2, occupiedBit);
-			leaves.set(leftSon.leavesShift + 1, true);
-			leaves.set(leftSon.leavesShift + 3, true);
+			leaves.set(leftSon.leavesShift + 1, false);
+			leaves.set(leftSon.leavesShift + 3, false);
 		}
 		
 		public void mergeSons(Node leftSon) {
@@ -188,7 +188,7 @@ public class SimpleBitArf implements IArf, Cloneable {
 			addToArray(leavesStart, depth + 1, 1);
 			leaves.shiftSuffixRight(leavesShift + 1, 1);
 			leaves.set(leavesShift, occupiedBit);
-			leaves.set(leavesShift + 1, true);
+			leaves.set(leavesShift + 1, false);
 		}
 		
 		public boolean equals(Node other) {
@@ -298,7 +298,7 @@ public class SimpleBitArf implements IArf, Cloneable {
 			node = parent;
 			if (!canCascade)
 				node = node.goToNextCyclicallyLeaf();
-			break;
+			continue;
 		}
 		
 		clockPointer = node.getPath();

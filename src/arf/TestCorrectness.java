@@ -9,15 +9,15 @@ import org.junit.Test;
 
 public class TestCorrectness {
 	@Test
-	public void testSimple() {
+	public void testArfSizeMatters() {
 		ArrayList<Integer> results = new ArrayList<>();
 		Random random = new Random(31415);
 		
-		for (int arfSize = 10; arfSize <= (int)1e6; arfSize *= 10) {
-			IQueryMaker queryMaker = new RandomQueryMaker(random, 30);
-			IColdStoreFiller coldStoreFiller = new RandomColdStoreFiller(random, 20, 5);
+		for (int arfSize = 10; arfSize <= (int)1e4; arfSize *= 5) {
+			IQueryMaker queryMaker = new RandomQueryMaker(random, 100);
+			IColdStoreFiller coldStoreFiller = new RandomColdStoreFiller(random, 100, 10);
 			IColdStore coldStore = new SimpleColdStore(0);
-			coldStore.fillWith(coldStoreFiller.getElements((int)1e6));
+			coldStore.fillWith(coldStoreFiller.getElements(100));
 			
 			IArf arf = new SimpleBitArf(arfSize);
 			int falsePositivesCount = 0;
@@ -38,12 +38,12 @@ public class TestCorrectness {
 		}
 		
 		for (int i = 1; i < results.size(); i++)
-			assertTrue(results.get(i - 1) > results.get(i) || results.get(i) < 50);
+			assertTrue(results.get(i - 1) > results.get(i) || results.get(i - 1) < 50);
 		assertTrue(results.get(results.size() - 1) < 50);
 	}
 	
 	@Test
-	public void testCustom() {
+	public void testSmallStrings() {
 		IArf arf = new SimpleBitArf(1000);
 		IColdStore coldStore = new SimpleColdStore(0);
 		BitArray[] content = {
@@ -60,14 +60,14 @@ public class TestCorrectness {
 		assertTrue(coldStore.hasAnything(BitArray.fromString("b"), BitArray.fromString("cb")));
 		assertFalse(coldStore.hasAnything(BitArray.fromString("abcd"), BitArray.fromString("abd")));
 		
-		arf.learnFalsePositive(BitArray.fromString("abbb"), BitArray.fromString("baza"));
-		arf.learnFalsePositive(BitArray.fromString("aaa"), BitArray.fromString("aaa"));
+		arf.learnFalsePositive(BitArray.fromString("aaa"), BitArray.fromString("abb"));
+		arf.learnFalsePositive(BitArray.fromString("abba"), BitArray.fromString("abbb"));
 		
-		assertTrue(arf.hasAnythingProbably(BitArray.fromString("abb"), BitArray.fromString("baza")));
-		assertTrue(arf.hasAnythingProbably(BitArray.fromString(""), BitArray.fromString("")));
-		assertTrue(arf.hasAnythingProbably(BitArray.fromString("aaa"), BitArray.fromString("c")));
+		assertTrue(arf.hasAnythingProbably(BitArray.fromString("abb"), BitArray.fromString("abba")));
+		assertTrue(arf.hasAnythingProbably(BitArray.fromString(""), BitArray.fromString("a")));
+		assertTrue(arf.hasAnythingProbably(BitArray.fromString("caba"), BitArray.fromString("cabca")));
 		
-		assertFalse(arf.hasAnythingProbably(BitArray.fromString("abbba"), BitArray.fromString("baaza")));
-		assertFalse(arf.hasAnythingProbably(BitArray.fromString("aaa"), BitArray.fromString("aaa")));
+		assertFalse(arf.hasAnythingProbably(BitArray.fromString("aab"), BitArray.fromString("abb")));
+		assertFalse(arf.hasAnythingProbably(BitArray.fromString("abba"), BitArray.fromString("abbaa")));
 	}
 }
