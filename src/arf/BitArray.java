@@ -85,9 +85,9 @@ public class BitArray implements Comparable<BitArray>, Cloneable {
 			if (getAsInt(i) > other.getAsInt(i))
 				return 1;
 		}
-		if (other.getSize() > length)
+		if (size < other.getSize())
 			return -1;
-		if (size > length)
+		if (size > other.getSize())
 			return 1;
 		return 0;
 	}

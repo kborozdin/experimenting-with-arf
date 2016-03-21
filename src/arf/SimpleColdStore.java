@@ -17,7 +17,7 @@ public class SimpleColdStore implements IColdStore {
 		int position = Arrays.binarySearch(storage, left);
 		if (position < 0)
 			position = -position - 1;
-		boolean result = position < storage.length && storage[position].compareTo(right) <= 0;
+		boolean result = position < storage.length && storage[position].compareTo(right) < 0;
 		while (System.nanoTime() - startTime < lagInMilliseconds * 1e6) {}
 		return result; 
 	}

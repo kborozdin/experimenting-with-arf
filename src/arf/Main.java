@@ -27,9 +27,9 @@ public class Main {
 	
 	public void testConcurrency() {
 		Random random = new Random(777);
-		IArf arf = new ConcurrentBitArf(new SimpleBitArf((int)1e5), 50);
+		IArf arf = new ConcurrentBitArf(new SimpleBitArf((int)1e5), 10);
 		IColdStore coldStore = new SimpleColdStore(10);
-		coldStore.fillWith(new RandomColdStoreFiller(random, 800, 200).getElements((int)1e6));
+		coldStore.fillWith(new RandomColdStoreFiller(random, 800, 200).getElements((int)1e5));
 
 		long startTime = System.nanoTime();
 		Thread[] threads = new Thread[5];

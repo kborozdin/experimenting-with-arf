@@ -7,10 +7,9 @@ public class ConcurrentBitArf implements IArf {
 	private int queriesCountToRebuildAfter;
 	private IArf arf;
 	private Queue<Segment> queue = new LinkedBlockingQueue<Segment>();
-	private Object rebuildDoneNotifier = new Object();
+	private Object rebuildLock = new Object();
 	private boolean rebuild;
-	private Object queriesLock = new Object();
-	private volatile int queriesCounter;
+	private int queriesCounter;
 	
 	private class Worker implements Runnable {
 		@Override
@@ -19,19 +18,24 @@ public class ConcurrentBitArf implements IArf {
 				if (queue.size() < queriesCountToRebuildAfter)
 					continue;
 				
-				synchronized (queriesLock) {
+				synchronized (rebuildLock) {
 					rebuild = true;
 				}
-				while (queriesCounter > 0) {}
+				while (true) { // TODO
+					synchronized (rebuildLock) {
+						if (queriesCounter == 0)
+							break;
+					}
+				}
 				
 				while (queue.size() > 0) {
 					Segment segment = queue.poll();
 					arf.learnFalsePositive(segment.left, segment.right);
 				}
-				
-				rebuild = false;
-				synchronized (rebuildDoneNotifier) {
-					rebuildDoneNotifier.notifyAll();
+	
+				synchronized (rebuildLock) {
+					rebuild = false;
+					rebuildLock.notifyAll();
 				}
 			}
 		}
@@ -46,20 +50,18 @@ public class ConcurrentBitArf implements IArf {
 	}
 	
 	private void queryBegin() {
-		synchronized (queriesLock) {
+		synchronized (rebuildLock) {
 			if (rebuild) {
-				synchronized (rebuildDoneNotifier) {
-					try {
-						rebuildDoneNotifier.wait();
-					} catch (InterruptedException e) {}
-				}
+				try {
+					rebuildLock.wait();
+				} catch (InterruptedException e) {}
 			}
 			queriesCounter++;
 		}
 	}
 	
 	private void queryEnd() {
-		synchronized (queriesLock) {
+		synchronized (rebuildLock) {
 			queriesCounter--;
 		}
 	}
