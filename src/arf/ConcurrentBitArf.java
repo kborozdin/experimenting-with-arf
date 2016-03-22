@@ -32,7 +32,7 @@ public class ConcurrentBitArf implements IArf {
 					Segment segment = queue.poll();
 					arf.learnFalsePositive(segment.left, segment.right);
 				}
-	
+				
 				synchronized (rebuildLock) {
 					rebuild = false;
 					rebuildLock.notifyAll();

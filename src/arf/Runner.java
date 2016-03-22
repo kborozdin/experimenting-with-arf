@@ -5,10 +5,6 @@ public class Runner {
 	IColdStore coldStore;
 	IQueryMaker queryMaker;
 	
-	public enum ArfMode {
-		DISABLED, ENABLED, DEBUG
-	}
-	
 	public Runner(IArf arf, IColdStore coldStore, IQueryMaker queryMaker) {
 		this.arf = arf;
 		this.coldStore = coldStore;
@@ -21,7 +17,7 @@ public class Runner {
 			Segment query = queryMaker.generateSegment();
 			if (arfMode != ArfMode.DISABLED && !arf.hasAnythingProbably(query.left, query.right)) {
 				if (arfMode == ArfMode.DEBUG && coldStore.hasAnything(query.left, query.right))
-					throw new IllegalStateException("ARF false negative");
+					return Double.NaN;
 				continue;
 			}
 			if (!coldStore.hasAnything(query.left, query.right) && arfMode != ArfMode.DISABLED)
