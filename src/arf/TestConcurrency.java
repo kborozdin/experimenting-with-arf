@@ -45,6 +45,7 @@ public class TestConcurrency {
 		IArf arf = new ConcurrentBitArf(new SimpleBitArf((int)1e5), 50);
 		IColdStore coldStore = new SimpleColdStore(10);
 		coldStore.fillWith(new RandomColdStoreFiller(random, 800, 200).getElements((int)1e5));
+		long startTime = System.nanoTime();
 
 		Thread[] threads = new Thread[5];
 		for (int i = 0; i < threads.length; i++) {
@@ -56,5 +57,7 @@ public class TestConcurrency {
 				threads[i].join();
 			} catch (InterruptedException e) {}
 		}
+		
+		System.out.println("Time elapsed (Concurrency, " + arfMode.toString() + "): " + (System.nanoTime() - startTime) / 1e6);
 	}
 }
