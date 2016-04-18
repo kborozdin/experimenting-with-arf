@@ -51,12 +51,23 @@ public class BitArray implements Comparable<BitArray>, Cloneable {
 		size++;
 	}
 	
-	// TODO : optimize
 	public int getLongestCommonPrefixWith(BitArray other) {
 		int length = Math.min(size, other.getSize());
-		for (int i = 0; i < length; i++)
-			if (get(i) != other.get(i))
-				return i;
+		long[] bytes1 = bitSet.toLongArray();
+		long[] bytes2 = other.bitSet.toLongArray();
+		
+		for (int i = 0; i * Long.SIZE < length; i++) {
+			long xored = 0;
+			if (i < bytes1.length)
+				xored ^= bytes1[i];
+			if (i < bytes2.length)
+				xored ^= bytes2[i];
+			if (xored == 0)
+				continue;
+			int index = Long.numberOfTrailingZeros(xored);
+			return Math.min(length, i * Long.SIZE + index);
+		}
+		
 		return length;
 	}
 
@@ -70,20 +81,19 @@ public class BitArray implements Comparable<BitArray>, Cloneable {
 		size += shiftSize;
 	}
 	
-	// TODO
+	// TODO : a constant factor can be reduced by direct work with the array of longs
 	public int countOnes(int left, int rightEx) {
 		return bitSet.get(left, rightEx).cardinality();
 	}
-
-	// TODO : optimize
+	
 	@Override
 	public int compareTo(BitArray other) {
 		int length = Math.min(size, other.getSize());
-		for (int i = 0; i < length; i++) {
-			if (getAsInt(i) < other.getAsInt(i))
+		int prefix = getLongestCommonPrefixWith(other);
+		if (prefix < length) {
+			if (getAsInt(prefix) < other.getAsInt(prefix))
 				return -1;
-			if (getAsInt(i) > other.getAsInt(i))
-				return 1;
+			return 1;
 		}
 		if (size < other.getSize())
 			return -1;
@@ -92,14 +102,10 @@ public class BitArray implements Comparable<BitArray>, Cloneable {
 		return 0;
 	}
 	
-	// TODO : optimize
 	public boolean equals(BitArray other) {
 		if (size != other.getSize())
 			return false;
-		for (int i = 0; i < size; i++)
-			if (get(i) != other.get(i))
-				return false;
-		return true;
+		return getLongestCommonPrefixWith(other) == size;
 	}
 	
 	@Override
@@ -125,7 +131,7 @@ public class BitArray implements Comparable<BitArray>, Cloneable {
 		return result;
 	}
 	
-	// TODO : Unicode troubles
+	// TODO : does not work with Unicode
 	public static BitArray fromString(String str) {
 		return BitArray.fromByteArray(str.getBytes());
 	}

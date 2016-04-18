@@ -142,7 +142,6 @@ public class SimpleArf {
 			return parent;
 		}
 		
-		// TODO : a better use of known shifts is possible
 		public Node navigateToLeaf(int element) {
 			Node node = this;
 			int additionalVerticesShift = -1;
@@ -314,7 +313,6 @@ public class SimpleArf {
 	}
 
 	private int getSizeInBits() {
-		// TODO : actual BitSets size is greater
 		return verticesSize + leavesSize;
 	}
 }

@@ -21,7 +21,8 @@ public class ConcurrentBitArf implements IArf {
 				synchronized (rebuildLock) {
 					rebuild = true;
 				}
-				while (true) { // TODO
+				// TODO : more efficient implementation is surely possible
+				while (true) {
 					synchronized (rebuildLock) {
 						if (queriesCounter == 0)
 							break;

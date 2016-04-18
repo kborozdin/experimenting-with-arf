@@ -8,7 +8,6 @@ public class RandomColdStoreFiller implements IColdStoreFiller {
 	private BitArray prefix;
 	
 	public RandomColdStoreFiller(Random random, int maximalLength, int commonPrefixLength) {
-		// TODO : assertion
 		this.random = random;
 		this.maximalLength = maximalLength;
 		prefix = new BitArray();

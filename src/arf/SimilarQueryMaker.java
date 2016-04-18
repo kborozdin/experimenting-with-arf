@@ -35,7 +35,6 @@ public class SimilarQueryMaker implements IQueryMaker {
 	
 	@Override
 	public Segment generateSegment() {
-		// TODO : clone...
 		Segment segment = new Segment(baseSegments[pointer].left, baseSegments[pointer].right);
 		pointer++;
 		if (pointer == baseSegments.length)

@@ -5,7 +5,9 @@ import java.util.ArrayList;
 public class SimpleBitArf implements IArf, Cloneable {
 	private int sizeLimitInBits;
 	private BitArray clockPointer;
-	private ArrayList<Integer> verticesStart, leavesStart; // TODO : shrink start lists?
+	// TODO : start lists have actual size about O(max query length), is it a problem?
+	private ArrayList<Integer> verticesStart, leavesStart;
+	// TODO : the same argument applies to underlying BitSets, actual size can be slightly bigger
 	private BitArray vertices, leaves;
 
 	private void addToArray(ArrayList<Integer> array, int from, int value) {
@@ -71,7 +73,7 @@ public class SimpleBitArf implements IArf, Cloneable {
 			return depth;
 		}
 
-		// TODO : reduce number of calculations of 'additionalVerticesShift'
+		// TODO : try to reduce number of calculations of 'additionalVerticesShift'
 		private Node goForward(boolean toLeft, int additionalVerticesShift) {
 			if (additionalVerticesShift == -1)
 				additionalVerticesShift = vertices.countOnes(verticesStart.get(depth), verticesShift) * 2;
@@ -304,7 +306,6 @@ public class SimpleBitArf implements IArf, Cloneable {
 		clockPointer = node.getPath();
 	}
 
-	// TODO : actual BitSets size is greater
 	private int getSizeInBits() {
 		return vertices.getSize() + leaves.getSize();
 	}
