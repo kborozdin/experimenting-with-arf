@@ -120,6 +120,17 @@ public class BitArray implements Comparable<BitArray>, Cloneable {
 		return result;
 	}
 	
+	public int toInt() {
+		int result = 0;
+		for (int i = 0; i < 31; i++) {
+			int b = 0;
+			if (i < size && get(i))
+				b = 1;
+			result = 2 * result + b;
+		}
+		return result;
+	}
+	
 	public static BitArray fromByteArray(byte[] array) {
 		BitArray result = new BitArray(Byte.SIZE * array.length);
 		int pointer = 0;

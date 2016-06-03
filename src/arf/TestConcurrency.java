@@ -35,21 +35,21 @@ public class TestConcurrency {
 		
 		@Override
 		public void run() {
-			assertFalse(Double.isNaN(runner.runAndMeasureTimeInMilliseconds((int)1e3, arfMode)));
+			assertFalse(Double.isNaN(runner.runAndMeasureTimeInMilliseconds((int)1e4, arfMode)));
 		}
 	}
 	
 	@Test
 	public void testConcurrency() {
 		Random random = new Random(777);
-		IArf arf = new ConcurrentBitArf(new SimpleBitArf((int)1e5), 50);
+		IArf arf = new ConcurrentBitArf(new SimpleBitArf((int)1e6), 50);
 		IColdStore coldStore = new SimpleColdStore(10);
-		coldStore.fillWith(new RandomColdStoreFiller(random, 800, 200).getElements((int)1e5));
+		coldStore.fillWith(new RandomColdStoreFiller(random, 200, 800, 200).getElements((int)1e6));
 		long startTime = System.nanoTime();
 
-		Thread[] threads = new Thread[5];
+		Thread[] threads = new Thread[4];
 		for (int i = 0; i < threads.length; i++) {
-			threads[i] = new Thread(new WorkerForConcurrency(new Runner(arf, coldStore, new RandomQueryMaker(random, 800))));
+			threads[i] = new Thread(new WorkerForConcurrency(new Runner(arf, coldStore, new RandomQueryMaker(random, 1, 800))));
 			threads[i].start();
 		}
 		for (int i = 0; i < threads.length; i++) {

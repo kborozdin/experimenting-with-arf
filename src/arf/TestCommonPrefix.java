@@ -11,10 +11,10 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(value = Parameterized.class)
-public class TestSimilarQueries {
+public class TestCommonPrefix {
 	private ArfMode arfMode;
 	
-	public TestSimilarQueries(ArfMode arfMode) {
+	public TestCommonPrefix(ArfMode arfMode) {
 		this.arfMode = arfMode;
 	}
 	
@@ -27,11 +27,11 @@ public class TestSimilarQueries {
 	}
 	
 	@Test
-	public void testSimilarQueries() {
+	public void testCommonPrefix() {
 		Random random = new Random(12345);
-		double time = Runner.runWithDefaults(arfMode, new SimpleBitArf((int)1e6), new RandomColdStoreFiller(random, 1, 800, 0),
-				(int)1e6, new SimilarQueryMaker(random, 100, 200, 400, 800), (int)1e4);
+		double time = Runner.runWithDefaults(arfMode, new SimpleBitArf((int)1e6), new RandomColdStoreFiller(random, 200, 800, 200),
+				(int)1e6, new RandomQueryMaker(random, 1, 800), (int)1e4);
 		assertFalse(Double.isNaN(time));
-		System.out.println("Time elapsed (Similar queries, " + arfMode.toString() + "): " + time);
+		System.out.println("Time elapsed (Common prefix, " + arfMode.toString() + "): " + time);
 	}
 }

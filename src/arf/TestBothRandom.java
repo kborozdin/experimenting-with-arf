@@ -29,8 +29,8 @@ public class TestBothRandom {
 	@Test
 	public void testBothRandom() {
 		Random random = new Random(12345);
-		double time = Runner.runWithDefaults(arfMode, (int)1e6, new RandomColdStoreFiller(random, 800, 0),
-				(int)1e6, new RandomQueryMaker(random, 800), (int)1e3);
+		double time = Runner.runWithDefaults(arfMode, new SimpleBitArf((int)1e6), new RandomColdStoreFiller(random, 1, 800, 0),
+				(int)1e6, new RandomQueryMaker(random, 1, 800), (int)1e4);
 		assertFalse(Double.isNaN(time));
 		System.out.println("Time elapsed (Both random, " + arfMode.toString() + "): " + time);
 	}

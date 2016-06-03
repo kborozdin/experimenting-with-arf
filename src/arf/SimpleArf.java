@@ -3,10 +3,10 @@ package arf;
 import java.util.BitSet;
 
 /*
- * This class is deprecated and has only a historical significance
+ * Original ARF
  */
 
-public class SimpleArf {
+public class SimpleArf implements IArf {
 	private final int LEFT_BOUND = Integer.MIN_VALUE;
 	private final int RIGHT_BOUND = Integer.MAX_VALUE;
 	private final int VERTEX_SIZE = 2;
@@ -246,7 +246,9 @@ public class SimpleArf {
 		leaves.set(1);
 	}
 	
-	public boolean hasAnythingProbably(int left, int right) {
+	public boolean hasAnythingProbably(BitArray leftBits, BitArray rightBits) {
+		int left = leftBits.toInt();
+		int right = rightBits.toInt();
 		Node node = new Node().navigateToLeaf(left);
 		while (true) {
 			node.setUsedBit(true);
@@ -269,7 +271,9 @@ public class SimpleArf {
 		}
 	}
 
-	public void learnFalsePositive(int left, int right) {
+	public void learnFalsePositive(BitArray leftBits, BitArray rightBits) {
+		int left = leftBits.toInt();
+		int right = rightBits.toInt();
 		Node node = new Node().navigateToLeaf(left);
 		while (node.getLeft() != left && node.getOccupiedBit()) {
 			node.split();
