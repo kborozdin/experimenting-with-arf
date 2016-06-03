@@ -1,0 +1,6 @@
+Time elapsed (Integers, ENABLED, New ARF ): 50002.911964
+Time elapsed (Integers, ENABLED, Old ARF ): 49907.412738
+Time elapsed (Both random, ENABLED): 100133.866293
+Time elapsed (Concurrency, ENABLED): 60801.942908
+Time elapsed (Similar queries, ENABLED): 32705.439555
+Time elapsed (Common prefix, ENABLED): 52671.623038
