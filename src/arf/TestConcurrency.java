@@ -21,7 +21,7 @@ public class TestConcurrency {
 	@Parameters(name = "arfMode = {0}")
 	public static Iterable<Object[]> data() {
 		return Arrays.asList(new Object[][] {
-				{ArfMode.DEBUG},
+				//{ArfMode.DEBUG},
 				{ArfMode.ENABLED}
 		});
 	}

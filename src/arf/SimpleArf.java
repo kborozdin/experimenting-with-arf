@@ -248,7 +248,7 @@ public class SimpleArf implements IArf {
 	
 	public boolean hasAnythingProbably(BitArray leftBits, BitArray rightBits) {
 		int left = leftBits.toInt();
-		int right = rightBits.toInt();
+		int right = rightBits.toInt() - 1;
 		Node node = new Node().navigateToLeaf(left);
 		while (true) {
 			node.setUsedBit(true);
@@ -273,7 +273,7 @@ public class SimpleArf implements IArf {
 
 	public void learnFalsePositive(BitArray leftBits, BitArray rightBits) {
 		int left = leftBits.toInt();
-		int right = rightBits.toInt();
+		int right = rightBits.toInt() - 1;
 		Node node = new Node().navigateToLeaf(left);
 		while (node.getLeft() != left && node.getOccupiedBit()) {
 			node.split();

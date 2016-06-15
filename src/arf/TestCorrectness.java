@@ -15,7 +15,7 @@ public class TestCorrectness {
 		
 		for (int arfSize = 10; arfSize <= (int)1e4; arfSize *= 5) {
 			IQueryMaker queryMaker = new RandomQueryMaker(random, 1, 100);
-			IColdStoreFiller coldStoreFiller = new RandomColdStoreFiller(random, 10, 100, 10);
+			IColdStoreFiller coldStoreFiller = new RandomColdStoreFiller(random, 20, 100, 20);
 			IColdStore coldStore = new SimpleColdStore(0);
 			coldStore.fillWith(coldStoreFiller.getElements(100));
 			
@@ -38,7 +38,7 @@ public class TestCorrectness {
 		}
 		
 		for (int i = 1; i < results.size(); i++)
-			assertTrue(results.get(i - 1) > results.get(i) || results.get(i - 1) < 50);
+			assertTrue(results.get(i - 1) > results.get(i));
 		assertTrue(results.get(results.size() - 1) < 50);
 	}
 	

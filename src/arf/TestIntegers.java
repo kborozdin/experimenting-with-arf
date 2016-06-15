@@ -23,8 +23,8 @@ public class TestIntegers {
 	@Parameters(name = "arfMode = {0}, useSimpleArf = {1}")
 	public static Iterable<Object[]> data() {
 		return Arrays.asList(new Object[][] {
-				{ArfMode.DEBUG, false},
-				{ArfMode.DEBUG, true},
+				//{ArfMode.DEBUG, false},
+				//{ArfMode.DEBUG, true},
 				{ArfMode.ENABLED, false},
 				{ArfMode.ENABLED, true},
 		});
